@@ -160,9 +160,9 @@ class AdminProductController extends Controller
      */
     public function update(Request $request, $id)
     {
-        /** Thiếu try catch & transc */
         //sản phẩm
-        $data = $request->all();
+        try{
+            $data = $request->all();
         $product = Product::find($id);
         if(!$product){
             return response()->json([
@@ -286,6 +286,12 @@ class AdminProductController extends Controller
         return response()->json([
             'message' =>  'Update success product',
         ], 200);
+        }catch(Exception $e){
+             return response()->json([
+            'error' =>  'Update fail',
+        ], 5000);
+        }
+        
     }
 
     /**
