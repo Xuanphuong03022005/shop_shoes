@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
-    public  $url ;
+    public  $url;
     public function __construct()
     {
         $this->url = config('app.url');
@@ -50,18 +50,18 @@ class ProductController extends Controller
         $images = Image::where('product_id', $id)
             ->select(DB::raw("CONCAT('$this->url/', images.path) as path"))
             ->get();
-        $array_color =  [];
+        $arrayColor =  [];
         foreach ($sizes as $key => $value) {
             $size_colors = SizeColor::where('size_id', $value['id'])
                 ->join('colors as c', 'size_colors.color_id', 'c.id')
                 ->select('c.name as name_color', 'size_colors.color_id as id_color')
                 ->get();
             foreach ($size_colors as $key => $value) {
-                $exit = array_filter($array_color, function ($item) use ($value) {
+                $exit = array_filter($arrayColor, function ($item) use ($value) {
                     return $item['id'] == $value['id_color'];
                 });
                 if (empty($exit)) {
-                    $array_color[] = [
+                    $arrayColor[] = [
                         'id' =>  $value['id_color'],
                         'name' =>  $value['name_color'],
                     ];
@@ -72,7 +72,7 @@ class ProductController extends Controller
             'product' =>  $product,
             'sizes' =>  $sizes,
             'images' =>  $images,
-            'color' =>  $array_color,
+            'color' =>  $arrayColor,
         ]);
     }
 }

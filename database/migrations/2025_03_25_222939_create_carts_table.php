@@ -18,8 +18,8 @@ class CreateCartsTable extends Migration
             $table->unsignedBigInteger('product_id');
             $table->unsignedBigInteger('user_id');
             $table->integer('quantity');
-            $table->integer('size');
-            $table->string('color');
+            $table->integer('size_id');
+            $table->integer('color_id');
             $table->softDeletes();
             $table->timestamps();
             $table->foreign('product_id')->references('id')->on('products')->onUpdate('casCade');

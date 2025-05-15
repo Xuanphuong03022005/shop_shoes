@@ -19,8 +19,8 @@ class AdminColorController extends Controller
     public function store(Request $request)
     {
         $name = $request->input('name');
-        $color_search = Color::where('name', $name)->exists();
-        if ($color_search) {
+        $colorSearch = Color::where('name', $name)->exists();
+        if ($colorSearch) {
             return response()->json([
                 'message' => 'Màu :đã tồn tại'
             ], 500);

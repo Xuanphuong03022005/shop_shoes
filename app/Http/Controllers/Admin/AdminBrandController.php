@@ -19,8 +19,8 @@ class AdminBrandController extends Controller
     public function store(Request $request)
     {
         $name = $request->input('name');
-        $brand_search = Brand::where('name', $name)->exists();
-        if ($brand_search) {
+        $brandSearch = Brand::where('name', $name)->exists();
+        if ($brandSearch) {
             return response()->json([
                 'message' => 'Màu đã tồn tại'
             ], 500);

@@ -19,8 +19,8 @@ class AdminOriginController extends Controller
     public function store(Request $request)
     {
         $name = $request->input('name');
-        $origin_search = Origin::where('name', $name)->exists();
-        if($origin_search){
+        $originSearch = Origin::where('name', $name)->exists();
+        if ($originSearch) {
             return response()->json([
                 'message' => 'Mục xuất xứ đã tồn tại'
             ], 500);
@@ -28,33 +28,33 @@ class AdminOriginController extends Controller
         $origin = Origin::create([
             'name' => $name
         ]);
-        if( $origin){
+        if ($origin) {
             return response()->json([
-                'message' => 'Thêm xuất xứ : '. $name .' thành công.'
+                'message' => 'Thêm xuất xứ : ' . $name . ' thành công.'
             ], 200);
-        }else{
+        } else {
             return response()->json([
                 'message' => 'Thêm xuất xứ không thành công.'
-            ],500);
+            ], 500);
         }
     }
     public function destroy($id)
     {
-        try{
+        try {
             $origin = Origin::find($id);
-            if(!$origin){
+            if (!$origin) {
                 return response()->json([
                     'message' => 'Không tìm thấy bản ghi này.'
-                ],404);
+                ], 404);
             }
             $origin->delete();
             return response()->json([
                 'message' => 'Xoá thành công.'
-            ],200);
-        }catch(Exception $e){
+            ], 200);
+        } catch (Exception $e) {
             return response()->json([
                 'message' => 'Xoá không thành công.'
-            ],500);
+            ], 500);
         }
     }
 }

@@ -40,18 +40,18 @@ class UserController extends Controller
         $data = $request->all();
         $password = Hash::make($data['password']);
         $birthday = date('d-m-Y', strToTime($data['birthday']));
-        $name_user =  $data['full_name'];
+        $nameUser =  $data['full_name'];
         if($request->avatar != ""){
             $image = $request->file('avatar');
-            $name_image = time().'-'.$name_user.'-'. $image->getClientOriginalName();
-            $success = $image->storeAs('images', $name_image, 'public');
+            $nameImage = time().'-'.$nameUser.'-'. $image->getClientOriginalName();
+            $success = $image->storeAs('images', $nameImage, 'public');
             if(!$success){
                 return response()->json([
                     'message' => 'Lưu ảnh thất bại'
                 ], 500);
             }
         }else{
-            $name_image = null;
+            $nameImage = null;
         }
       
       DB::beginTransaction();
@@ -63,17 +63,17 @@ class UserController extends Controller
             'phone' =>  $data['phone'],
             'birthday' => $birthday,
             'address' =>  $data['address'],
-            'avatar' =>  $name_image,
+            'avatar' =>  $nameImage,
             'password' =>  $password ,
             'email' =>  $data['email'],
         ]);
         $user->refresh();
         DB::commit();
-        $role_id = $user->role_id;
+        $roleId = $user->role_id;
         $user_id = $user->id;
         $role = UserRole::create([
             'user_id' =>  $user_id,
-            'role_id' =>  $role_id
+            'role_id' =>  $roleId
         ]);
         DB::commit();
         return response()->json([

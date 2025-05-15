@@ -29,10 +29,10 @@ class AdminCategoryController extends Controller
      */
     public function store(Request $request)
     {
-       
+
         $name = $request->input('name');
-        $category_search = Category::where('name', $name)->exists();
-        if($category_search){
+        $categorySearch = Category::where('name', $name)->exists();
+        if ($categorySearch) {
             return response()->json([
                 'message' => 'Mục phân loại đã tồn tại'
             ], 500);
@@ -40,14 +40,14 @@ class AdminCategoryController extends Controller
         $category = Category::create([
             'name' => $name
         ]);
-        if( $category){
+        if ($category) {
             return response()->json([
-                'message' => 'Thêm phân loại : '. $name .' thành công.'
+                'message' => 'Thêm phân loại : ' . $name . ' thành công.'
             ], 200);
-        }else{
+        } else {
             return response()->json([
                 'message' => 'Thêm phân loại không thành công.'
-            ],500);
+            ], 500);
         }
     }
 
@@ -93,21 +93,21 @@ class AdminCategoryController extends Controller
      */
     public function destroy($id)
     {
-        try{
+        try {
             $category = Category::find($id);
-            if(!$category){
+            if (!$category) {
                 return response()->json([
                     'message' => 'Không tìm thấy bản ghi này.'
-                ],404);
+                ], 404);
             }
             $category->delete();
             return response()->json([
                 'message' => 'Xoá thành công.'
-            ],200);
-        }catch(Exception $e){
+            ], 200);
+        } catch (Exception $e) {
             return response()->json([
                 'message' => 'Xoá không thành công.'
-            ],500);
+            ], 500);
         }
     }
 }
