@@ -52,11 +52,11 @@ class ProductController extends Controller
             ->get();
         $arrayColor =  [];
         foreach ($sizes as $key => $value) {
-            $size_colors = SizeColor::where('size_id', $value['id'])
+            $sizeColors = SizeColor::where('size_id', $value['id'])
                 ->join('colors as c', 'size_colors.color_id', 'c.id')
                 ->select('c.name as name_color', 'size_colors.color_id as id_color')
                 ->get();
-            foreach ($size_colors as $key => $value) {
+            foreach ($sizeColors as $key => $value) {
                 $exit = array_filter($arrayColor, function ($item) use ($value) {
                     return $item['id'] == $value['id_color'];
                 });

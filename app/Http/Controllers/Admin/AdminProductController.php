@@ -42,7 +42,7 @@ class AdminProductController extends Controller
      */
     public function store(Request $request)
     {
-      
+
         $data = $request->all();
         $image = $request->file('image');
         $name = $data['name'];
@@ -52,7 +52,7 @@ class AdminProductController extends Controller
             $nameImageFile = $value->getClientOriginalName();
             $nameImage = time() . '-' . $name . '-' . $nameImageFile;
             $success = $value->storeAs('images', $nameImage, 'public');
-           
+
             if (!$success) {
                 return response()->json([
                     'message' => 'Save image fail'
@@ -68,7 +68,7 @@ class AdminProductController extends Controller
             }
         }
         try {
-           
+
             DB::beginTransaction();
             $product = Product::create([
                 'origin_id' => $data['origin'],
@@ -125,19 +125,21 @@ class AdminProductController extends Controller
             ->select(DB::raw("CONCAT('$url/',path) as path"))
             ->get();
         $sizes = Size::select('sizes.*', 'size_color_t.nameC', 'size_color_t.idC as id_color')
-        ->join(DB::raw('(SELECT sc.size_id as idS,  sc.color_id as idC, c.name as nameC  FROM size_colors as sc
+            ->join(
+                DB::raw('(SELECT sc.size_id as idS,  sc.color_id as idC, c.name as nameC  FROM size_colors as sc
             JOIN colors as c ON sc.color_id = c.id
-            ) as size_color_t' ),
-                'sizes.id' , 'size_color_t.idS'
-        )
-        ->where('sizes.product_id', $id)
-        ->get();
-    
-            return response()->json([
-                'sizes' =>   $sizes,
-                'images' =>   $images,
-                'product' =>   $product,
-            ], 200);
+            ) as size_color_t'),
+                'sizes.id',
+                'size_color_t.idS'
+            )
+            ->where('sizes.product_id', $id)
+            ->get();
+
+        return response()->json([
+            'sizes' =>   $sizes,
+            'images' =>   $images,
+            'product' =>   $product,
+        ], 200);
     }
 
     /**
@@ -161,137 +163,135 @@ class AdminProductController extends Controller
     public function update(Request $request, $id)
     {
         //sản phẩm
-        try{
+        try {
             $data = $request->all();
-        $product = Product::find($id);
-        if(!$product){
-            return response()->json([
-                'message' => 'Product Not Found'
-            ], 500);
-        }
-        $product->update([
-            'origin_id' =>  $data['origin'], 
-            'category_id'=>  $data['category'], 
-            'brand_id'=>  $data['brand'], 
-            'gender_id'=>  $data['gender'], 
-            'name'=>  $data['name'], 
-            'description'=>  $data['description'], 
-            'is_published' =>  $data['sold'], 
-        ]);
-        //size
-        foreach ($data['size'] as $key =>  $value) {
-            $array = json_decode($value, true);
-            if ($array) {
-                $size = Size::where('product_id', $id)->where('number_size', $array['size'])->first();
-                if($size){
-                    $size->update([
-                        'product_id'=>  $id,
-                        'number_size'=>  $array['size'],
-                        'list_price'=>  $array['price'],
-                        'quantity' =>  $array['quantity'] 
-                    ]);
-                    $size_color = SizeColor::where('size_id', $size->id)->get();
-                    $lengthSize = count($size_color);
-                    foreach($array['color'] as $key => $itemColor){
-                       if($key < $lengthSize){
-                        $exit = SizeColor::find($size_color[$key]['id']);
-                            if($exit){
-                                $exit->update([
+            $product = Product::find($id);
+            if (!$product) {
+                return response()->json([
+                    'message' => 'Product Not Found'
+                ], 500);
+            }
+            $product->update([
+                'origin_id' =>  $data['origin'],
+                'category_id' =>  $data['category'],
+                'brand_id' =>  $data['brand'],
+                'gender_id' =>  $data['gender'],
+                'name' =>  $data['name'],
+                'description' =>  $data['description'],
+                'is_published' =>  $data['sold'],
+            ]);
+            //size
+            foreach ($data['size'] as $key =>  $value) {
+                $array = json_decode($value, true);
+                if ($array) {
+                    $size = Size::where('product_id', $id)->where('number_size', $array['size'])->first();
+                    if ($size) {
+                        $size->update([
+                            'product_id' =>  $id,
+                            'number_size' =>  $array['size'],
+                            'list_price' =>  $array['price'],
+                            'quantity' =>  $array['quantity']
+                        ]);
+                        $sizeColor = SizeColor::where('size_id', $size->id)->get();
+                        $lengthSize = count($sizeColor);
+                        foreach ($array['color'] as $key => $itemColor) {
+                            if ($key < $lengthSize) {
+                                $exit = SizeColor::find($sizeColor[$key]['id']);
+                                if ($exit) {
+                                    $exit->update([
+                                        'color_id' => $itemColor['id']
+                                    ]);
+                                }
+                            } else {
+                                $sizeColor = SizeColor::create([
+                                    'size_id' =>  $size->id,
                                     'color_id' => $itemColor['id']
                                 ]);
                             }
-                        }else{
+                        }
+                        for ($i = count($array['color']); $i < $lengthSize; $i++) {
+                            $sizeColorDelete = SizeColor::find($sizeColor[$i]['id']);
+                            $sizeColorDelete->delete();
+                        }
+                    } else {
+                        $sizeCreate = Size::create([
+                            'product_id' =>  $id,
+                            'number_size' =>  $array['size'],
+                            'list_price' =>  $array['price'],
+                            'quantity' =>  $array['quantity']
+                        ]);
+                        foreach ($array['color'] as $key => $item) {
                             $sizeColor = SizeColor::create([
-                                'size_id' =>  $size->id,   
-                                'color_id' => $itemColor['id']
+                                'size_id' =>  $sizeCreate->id,
+                                'color_id' => $item['id']
                             ]);
                         }
                     }
-                    for($i = count($array['color']) ; $i < $lengthSize; $i++){
-                        $sizeColorDelete = SizeColor::find($size_color[$i]['id']);
-                        $sizeColorDelete->delete();
+                }
+            }
+            $arraysizeF = [];
+            $sizeDB = Size::where('product_id', $id)->pluck('number_size')->toArray();
+            foreach ($data['size'] as $key => $value) {
+                $arraySize = json_decode($value, true);
+                $arraysizeF[] =  $arraySize;
+            }
+            $idSize = array_column($arraysizeF, 'size');
+            $arrayDelete = array_diff($sizeDB, $idSize);
+            $deleteSize = Size::where('product_id', $id)->whereIn('number_size', $arrayDelete)->delete();
+            //ảnh
+            $images =  $data['image'];
+            $name =  $data['name'];
+            $arrayImage = [];
+            foreach ($images as $key => $value) {
+                if ($request->hasFile('image.' . $key)) {
+                    $file = $request->file('image.' . $key);
+                    $nameImageFile = $value->getClientOriginalName();
+                    $nameImage = time() . '-' . $name . '-' . $nameImageFile;
+                    $success = $value->storeAs('images', $nameImage, 'public');
+                    if (!$success) {
+                        return response()->json([
+                            'message' => 'Save image fail'
+                        ], 500);
                     }
-                }else{
-                    $sizeCreate = Size::create([
-                        'product_id'=>  $id,
-                        'number_size'=>  $array['size'],
-                        'list_price'=>  $array['price'],
-                        'quantity' =>  $array['quantity'] 
-                    ]);
-                    foreach ($array['color'] as $key => $item) {
-                        $sizeColor = SizeColor::create([
-                            'size_id' =>  $sizeCreate->id,   
-                            'color_id' => $item['id']
+                    $path = "storage/$success";
+                    $arrayImage[] = $path;
+                } else {
+                    $image = json_decode($value, true);
+                    $substr = substr($image['name'], 18);
+                    $arrayImage[] = $substr;
+                }
+            }
+            $imageDB = Image::where('product_id', $id)
+                ->get();
+            foreach ($arrayImage as $key => $value) {
+                if ($key < count($imageDB)) {
+                    $imageUpdate = Image::find($imageDB[$key]['id']);
+                    if ($imageUpdate) {
+                        $imageUpdate->update([
+                            'path' => $value
                         ]);
                     }
-                }
-            }
-        }
-        $arraysizeF = [];
-        $sizeDB = Size::where('product_id', $id)->pluck('number_size')->toArray();
-        foreach($data['size'] as $key =>$value){
-            $arraySize = json_decode($value, true);
-            $arraysizeF[] =  $arraySize;
-        }
-        $idSize = array_column($arraysizeF, 'size');
-        $arrayDelete = array_diff($sizeDB, $idSize);
-        $DeleteSize = Size::where('product_id', $id)->whereIn('number_size', $arrayDelete)->delete();
-        //ảnh
-        $images =  $data['image'];
-        $name =  $data['name'];
-        $arrayImage = [];
-        foreach ($images as $key => $value) {
-            if($request->hasFile('image.' . $key)){
-                $file = $request->file('image.' . $key);
-                $nameImageFile = $value->getClientOriginalName();
-                $nameImage = time() . '-' . $name . '-' . $nameImageFile;
-                $success = $value->storeAs('images', $nameImage, 'public');
-                if (!$success) {
-                    return response()->json([
-                        'message' => 'Save image fail'
-                    ], 500);
-                }
-                $path = "storage/$success";
-                $arrayImage[] = $path;
-            }else{
-                $image = json_decode($value,true);
-                $substr = substr($image['name'], 18);
-                $arrayImage[] =$substr;
-            }
-           
-        }
-        $imageDB = Image::where('product_id', $id)
-        ->get();
-        foreach($arrayImage as $key => $value){
-            if($key < count($imageDB)){
-                $imageUpdate = Image::find($imageDB[$key]['id']);
-                if($imageUpdate){
-                    $imageUpdate->update([
-                        'path' => $value
+                } else {
+                    $image = Image::create([
+                        'path' => $value,
+                        'product_id' => $id
                     ]);
                 }
-            }else{
-                $image = Image::create([
-                    'path' => $value,
-                    'product_id' => $id
-                ]);
             }
+            $lengthImage = count($arrayImage);
+            for ($i = $lengthImage; $i < count($imageDB); $i++) {
+                $id = $imageDB[$i]['id'];
+                $imageDelete = Image::find($id);
+                $imageDelete->delete();
+            }
+            return response()->json([
+                'message' =>  'Update success product',
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'error' =>  'Update fail',
+            ], 5000);
         }
-        $lengthImage = count($arrayImage);
-        for($i = $lengthImage; $i < count($imageDB); $i ++){
-             $id = $imageDB[$i]['id'];
-             $imageDelete = Image::find($id);
-             $imageDelete->delete();
-        }
-        return response()->json([
-            'message' =>  'Update success product',
-        ], 200);
-        }catch(Exception $e){
-             return response()->json([
-            'error' =>  'Update fail',
-        ], 5000);
-        }
-        
     }
 
     /**
